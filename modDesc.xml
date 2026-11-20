@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<modDesc descVersion="116">
+    <author>FS Modding</author>
+    <version>1.0.0.0</version>
+    <title>
+        <en>Matte Vehicles</en>
+        <de>Matte Fahrzeuge</de>
+        <fr>Véhicules Mats</fr>
+    </title>
+    <description>
+        <en><![CDATA[Makes the paint of all vehicles and implements matte (no gloss / clear coat). Runtime only, no game files are changed.]]></en>
+        <de><![CDATA[Macht den Lack aller Fahrzeuge und Anbaugeräte matt (kein Glanz / Klarlack). Nur zur Laufzeit, keine Spieldateien werden geändert.]]></de>
+        <fr><![CDATA[Rend la peinture de tous les véhicules et outils mate (sans brillance ni vernis). Uniquement à l'exécution, aucun fichier du jeu n'est modifié.]]></fr>
+    </description>
+    <iconFilename>icon_MatteVehicles.dds</iconFilename>
+    <multiplayer supported="true"/>
+    <extraSourceFiles>
+        <sourceFile filename="scripts/MatteVehicles.lua"/>
+    </extraSourceFiles>
+</modDesc>
