@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <modDesc descVersion="116">
     <author>FS Modding</author>
-    <version>1.1.0.0</version>
+    <version>1.2.0.0</version>
     <title>
         <en>Matte Vehicles</en>
         <de>Matte Fahrzeuge</de>
@@ -13,6 +13,9 @@
 Settings > General > MATTE VEHICLES: switch between MATTE and GLOSSY at any time.
 
 Changelog
+1.2.0.0
+- New option: Chrome parts (also makes chrome parts and mirror housings matte; glass, lights and displays stay untouched)
+
 1.1.0.0
 - New MATTE VEHICLES category with a MATTE / GLOSSY option in the game settings
 - GLOSSY restores the original paint of every vehicle
@@ -23,6 +26,9 @@ Changelog
 Einstellungen > Allgemein > MATTE VEHICLES: jederzeit zwischen MATT und GLANZ wechseln.
 
 Changelog
+1.2.0.0
+- Neue Option: Chromteile (macht auch Chromteile und Spiegelgehaeuse matt; Glas, Lichter und Displays bleiben unveraendert)
+
 1.1.0.0
 - Neue Kategorie MATTE VEHICLES mit Option MATT / GLANZ in den Einstellungen
 - GLANZ stellt den Originallack wieder her
@@ -32,6 +38,9 @@ Changelog
 Paramètres > Général > MATTE VEHICLES : basculer entre MAT et BRILLANT.
 
 Changelog
+1.2.0.0
+- Nouvelle option : Parties chromees (rend aussi mates les parties chromees et les boitiers de retroviseurs ; vitres, feux et ecrans inchanges)
+
 1.1.0.0
 - Nouvelle catégorie MATTE VEHICLES avec option MAT / BRILLANT dans les paramètres
 - BRILLANT rétablit la peinture d'origine
@@ -41,6 +50,8 @@ Changelog
         <text name="matte_title"><en>Paint finish</en><de>Lackierung</de><fr>Finition</fr><ro>Finisaj vopsea</ro></text>
         <text name="matte_tooltip"><en>Makes the paint of all vehicles and implements matte. Turn off to get the original gloss back.</en><de>Macht den Lack aller Fahrzeuge matt. Ausschalten stellt den Originalglanz wieder her.</de><fr>Rend la peinture de tous les véhicules mate. Désactiver rétablit la brillance d'origine.</fr><ro>Face vopseaua tuturor vehiculelor mată. Oprește pentru a reveni la luciul original.</ro></text>
         <text name="matte_category"><en>MATTE VEHICLES</en><de>MATTE FAHRZEUGE</de><fr>VÉHICULES MATS</fr><ro>VEHICULE MATE</ro></text>
+        <text name="matte_chrome_title"><en>Chrome parts</en><de>Chromteile</de><fr>Parties chromees</fr><ro>Piese cromate</ro></text>
+        <text name="matte_chrome_tooltip"><en>Also makes chrome parts and mirror housings matte. Glass, lights and displays always stay untouched.</en><de>Macht auch Chromteile und Spiegelgehaeuse matt. Glas, Lichter und Displays bleiben immer unveraendert.</de><fr>Rend aussi mates les parties chromees et les boitiers de retroviseurs. Les vitres, feux et ecrans ne changent jamais.</fr><ro>Face mate si piesele cromate si carcasele oglinzilor. Geamurile, luminile si afisajele raman mereu neschimbate.</ro></text>
         <text name="matte_matte"><en>MATTE</en><de>MATT</de><fr>MAT</fr><ro>MATE</ro></text>
         <text name="matte_glossy"><en>GLOSSY</en><de>GLANZ</de><fr>BRILLANT</fr><ro>LUCIOS</ro></text>
     </l10n>

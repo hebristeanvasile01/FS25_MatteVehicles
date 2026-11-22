@@ -6,12 +6,16 @@ MatteVehicles = {}
 MatteVehicles.modName = g_currentModName
 MatteVehicles.SMOOTHNESS_FACTOR = 0.25   -- 1.0 = original gloss, 0.0 = fully matte
 MatteVehicles.CHECK_INTERVAL = 1000      -- ms between sweeps for newly loaded vehicles
+-- always left untouched
 MatteVehicles.SKIP_NAMES = {
-    "glass", "window", "windshield", "light", "lamp", "lens", "mirror",
-    "display", "screen", "chrome", "beacon", "led"
+    "glass", "window", "windshield", "light", "lamp", "lens",
+    "display", "screen", "beacon", "led"
 }
+-- left untouched unless the "chrome parts" option is on
+MatteVehicles.CHROME_NAMES = { "mirror", "chrome" }
 
 MatteVehicles.enabled = true
+MatteVehicles.matteChrome = false
 MatteVehicles.timer = 0
 
 -- ------------------------------------------------------------------ settings file
@@ -27,6 +31,8 @@ function MatteVehicles.loadSettings()
         if xml ~= nil and xml ~= 0 then
             local value = getXMLBool(xml, "matteVehicles#enabled")
             if value ~= nil then MatteVehicles.enabled = value end
+            local chrome = getXMLBool(xml, "matteVehicles#matteChrome")
+            if chrome ~= nil then MatteVehicles.matteChrome = chrome end
             delete(xml)
         end
     end
@@ -37,6 +43,7 @@ function MatteVehicles.saveSettings()
     local xml = createXMLFile("MatteVehiclesSettings", MatteVehicles.getSettingsPath(), "matteVehicles")
     if xml ~= nil and xml ~= 0 then
         setXMLBool(xml, "matteVehicles#enabled", MatteVehicles.enabled)
+        setXMLBool(xml, "matteVehicles#matteChrome", MatteVehicles.matteChrome)
         saveXMLFile(xml)
         delete(xml)
     end
@@ -44,12 +51,22 @@ end
 
 -- ------------------------------------------------------------------ paint
 
-local function skipNode(node)
-    local name = string.lower(getName(node) or "")
-    for _, part in ipairs(MatteVehicles.SKIP_NAMES) do
+local function nameHasAny(name, list)
+    for _, part in ipairs(list) do
         if string.find(name, part, 1, true) ~= nil then
             return true
         end
+    end
+    return false
+end
+
+local function skipNode(node)
+    local name = string.lower(getName(node) or "")
+    if nameHasAny(name, MatteVehicles.SKIP_NAMES) then
+        return true
+    end
+    if nameHasAny(name, MatteVehicles.CHROME_NAMES) then
+        return not MatteVehicles.matteChrome
     end
     return false
 end
@@ -142,6 +159,26 @@ function MatteVehicles.setEnabled(state)
     else
         MatteVehicles.timer = MatteVehicles.CHECK_INTERVAL  -- sweep on the next update
     end
+end
+
+function MatteVehicles.setMatteChrome(state)
+    state = state == true
+    if MatteVehicles.matteChrome == state then
+        return
+    end
+    MatteVehicles.matteChrome = state
+    MatteVehicles.saveSettings()
+
+    -- restore everything and sweep again with the new rule
+    local vehicles = MatteVehicles.getVehicles()
+    if vehicles ~= nil then
+        for _, vehicle in pairs(vehicles) do
+            if vehicle.matteApplied then
+                MatteVehicles.restoreVehicle(vehicle)
+            end
+        end
+    end
+    MatteVehicles.timer = MatteVehicles.CHECK_INTERVAL
 end
 
 function MatteVehicles:update(dt)
@@ -250,56 +287,66 @@ function MatteVehicles.addSettingsEntry(frame, layoutName, templateNames)
         Logging.warning("[MatteVehicles] no section header template found in %s", layoutName)
     end
 
-    local box = template:clone(layout)
-    box.id = nil
-    box:setVisible(true)
+    local function buildRow(titleKey, tipKey, onChange)
+        local box = template:clone(layout)
+        box.id = nil
+        box:setVisible(true)
 
-    local option, title = findTitleAndOption(box)
-    if option == nil then
-        box:delete()
-        Logging.warning("[MatteVehicles] template without on/off option, menu entry skipped")
-        return
-    end
+        local option, title = findTitleAndOption(box)
+        if option == nil then
+            box:delete()
+            Logging.warning("[MatteVehicles] template without on/off option, menu entry skipped")
+            return nil
+        end
 
-    option.id = nil
-    option.target = MatteVehicles
-    option:setTexts({ g_i18n:getText("matte_glossy", MatteVehicles.modName), g_i18n:getText("matte_matte", MatteVehicles.modName) })
-    option.onClickCallback = function(_, state)
-        MatteVehicles.setEnabled(state == BinaryOptionElement.STATE_RIGHT)
-    end
-    if title ~= nil then
-        title:setText(g_i18n:getText("matte_title", MatteVehicles.modName))
-    end
-    -- tooltip: any text element of the cloned row whose name contains "tooltip" (not the buttons)
-    local tipText = g_i18n:getText("matte_tooltip", MatteVehicles.modName)
-    local function setTips(element)
-        for _, child in ipairs(element.elements or {}) do
-            local name = string.lower(child.name or "")
-            if child ~= option.leftButtonElement and child ~= option.rightButtonElement then
-                local profile = string.lower(tostring(child.profile or ""))
-                if child.setText ~= nil and (string.find(name, "tool", 1, true) ~= nil or string.find(profile, "tooltip", 1, true) ~= nil) then
-                    child:setText(tipText)
+        option.id = nil
+        option.target = MatteVehicles
+        option.onClickCallback = function(_, state)
+            onChange(state == BinaryOptionElement.STATE_RIGHT)
+        end
+        if title ~= nil then
+            title:setText(g_i18n:getText(titleKey, MatteVehicles.modName))
+        end
+        local tipText = g_i18n:getText(tipKey, MatteVehicles.modName)
+        local function setTips(element)
+            for _, child in ipairs(element.elements or {}) do
+                local name = string.lower(child.name or "")
+                if child ~= option.leftButtonElement and child ~= option.rightButtonElement then
+                    local profile = string.lower(tostring(child.profile or ""))
+                    if child.setText ~= nil and (string.find(name, "tool", 1, true) ~= nil or string.find(profile, "tooltip", 1, true) ~= nil) then
+                        child:setText(tipText)
+                    end
+                    setTips(child)
                 end
-                setTips(child)
             end
         end
-    end
-    setTips(box)
-    -- the text shown in the right-hand help panel is the toolTipText field of the focused element
-    local function setTipFields(element)
-        if element.toolTipText ~= nil then
-            element.toolTipText = tipText
+        setTips(box)
+        local function setTipFields(element)
+            if element.toolTipText ~= nil then
+                element.toolTipText = tipText
+            end
+            for _, child in ipairs(element.elements or {}) do
+                setTipFields(child)
+            end
         end
-        for _, child in ipairs(element.elements or {}) do
-            setTipFields(child)
-        end
+        setTipFields(box)
+        option.toolTipText = tipText
+        option:setTexts({ g_i18n:getText("matte_glossy", MatteVehicles.modName), g_i18n:getText("matte_matte", MatteVehicles.modName) })
+        return box, option
     end
-    setTipFields(box)
-    option.toolTipText = tipText
-    option:setTexts({ g_i18n:getText("matte_glossy", MatteVehicles.modName), g_i18n:getText("matte_matte", MatteVehicles.modName) })
 
+    local box, option = buildRow("matte_title", "matte_tooltip", function(state) MatteVehicles.setEnabled(state) end)
+    if option == nil then
+        return
+    end
     frame.matteVehiclesBox = box
     frame.matteVehiclesOption = option
+
+    local chromeBox, chromeOption = buildRow("matte_chrome_title", "matte_chrome_tooltip", function(state) MatteVehicles.setMatteChrome(state) end)
+    if chromeOption ~= nil then
+        frame.matteChromeBox = chromeBox
+        frame.matteChromeOption = chromeOption
+    end
     layout:invalidateLayout()
     Logging.info("[MatteVehicles] settings entry added to %s", layoutName)
 end
@@ -308,6 +355,9 @@ function MatteVehicles.onFrameOpen(frame, layoutName, templateNames)
     MatteVehicles.addSettingsEntry(frame, layoutName, templateNames)
     if frame.matteVehiclesOption ~= nil then
         frame.matteVehiclesOption:setIsChecked(MatteVehicles.enabled, true)
+        if frame.matteChromeOption ~= nil then
+            frame.matteChromeOption:setIsChecked(MatteVehicles.matteChrome, true)
+        end
         if frame.updateAlternatingElements ~= nil then
             frame:updateAlternatingElements(frame[layoutName])
         end
